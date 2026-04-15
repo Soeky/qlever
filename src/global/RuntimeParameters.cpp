@@ -56,6 +56,8 @@ RuntimeParameters::RuntimeParameters() {
   add(enableMaterializedViewQueryRewrite_);
   add(serviceAllowedIriPrefixes_);
   add(permutationWriterNumThreads_);
+  add(bgpCardEstimator_);
+  add(bgpJoinPlanner_);
 
   defaultQueryTimeout_.setParameterConstraint(
       [](std::chrono::seconds value, std::string_view parameterName) {
@@ -63,6 +65,25 @@ RuntimeParameters::RuntimeParameters() {
           throw std::runtime_error{absl::StrCat(
               "Parameter ", parameterName, " must be strictly positive, was ",
               value.count(), "s")};
+        }
+      });
+
+  bgpCardEstimator_.setParameterConstraint(
+      [](const std::string& value, std::string_view parameterName) {
+        if (value != "default" && value != "gnce") {
+          throw std::runtime_error{absl::StrCat(
+              "Parameter ", parameterName,
+              " must be \"default\" or \"gnce\", was \"", value, "\"")};
+        }
+      });
+
+  bgpJoinPlanner_.setParameterConstraint(
+      [](const std::string& value, std::string_view parameterName) {
+        if (value != "default" && value != "greedy-custom") {
+          throw std::runtime_error{absl::StrCat(
+              "Parameter ", parameterName,
+              " must be \"default\" or \"greedy-custom\", was \"", value,
+              "\"")};
         }
       });
 }

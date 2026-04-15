@@ -3426,17 +3426,29 @@ void QueryPlanner::GraphPatternPlanner::visitSubquery(
 
 // _______________________________________________________________
 void QueryPlanner::GraphPatternPlanner::optimizeCommutatively() {
-  auto replacementPlans =
-      planner_.createMaterializedViewJoinReplacements(candidateTriples_);
-  auto tg = planner_.createTripleGraph(&candidateTriples_);
-  auto lastRow =
-      planner_
-          .fillDpTab(tg, rootPattern_->_filters, rootPattern_->textLimits_,
-                     candidatePlans_, std::move(replacementPlans))
-          .back();
-  candidateTriples_._triples.clear();
-  candidatePlans_.clear();
-  candidatePlans_.push_back(std::move(lastRow));
+  auto joinPlannerMode =
+      getRuntimeParameter<&RuntimeParameters::bgpJoinPlanner_>();
+
+  if (joinPlannerMode == "default") {
+    // Default path: use existing QLever DP/greedy planning unchanged.
+    auto replacementPlans =
+        planner_.createMaterializedViewJoinReplacements(candidateTriples_);
+    auto tg = planner_.createTripleGraph(&candidateTriples_);
+    auto lastRow =
+        planner_
+            .fillDpTab(tg, rootPattern_->_filters, rootPattern_->textLimits_,
+                       candidatePlans_, std::move(replacementPlans))
+            .back();
+    candidateTriples_._triples.clear();
+    candidatePlans_.clear();
+    candidatePlans_.push_back(std::move(lastRow));
+  } else {
+    // Non-default path: use plugin architecture.
+    // Phase 3 will implement JoinPlanAdapter::translate().
+    // Phase 4 will implement GreedyJoinOrderAlgorithm.
+    AD_THROW(absl::StrCat("BGP join planner \"", joinPlannerMode,
+                           "\" is not yet implemented. Use \"default\"."));
+  }
   planner_.checkCancellation();
 }
 

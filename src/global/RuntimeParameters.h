@@ -19,6 +19,7 @@ struct RuntimeParameters {
   using MemorySizeParameter =
       ad_utility::detail::parameterShortNames::MemorySizeParameter;
   using SizeT = ad_utility::detail::parameterShortNames::SizeT;
+  using String = ad_utility::detail::parameterShortNames::String;
   using SpaceSeparatedStrings =
       ad_utility::detail::parameterShortNames::SpaceSeparatedStrings;
 
@@ -163,6 +164,16 @@ struct RuntimeParameters {
   // Even though this influences the logic of regular index building,
   // `qlever-index`doesn't expose a CLI flag to set this parameter.
   SizeT permutationWriterNumThreads_{2, "permutation-writer-num-threads"};
+
+  // Selects which cardinality estimator to use for BGP planning.
+  // "default" uses QLever's native IndexScan/Join estimation.
+  // "gnce" uses the GNCE GNN-based estimator (Phase 5).
+  String bgpCardEstimator_{"default", "bgp-card-estimator"};
+
+  // Selects which join ordering algorithm to use for BGP planning.
+  // "default" uses QLever's native DP/greedy planning (fillDpTab).
+  // "greedy-custom" uses a custom greedy join ordering (Phase 4).
+  String bgpJoinPlanner_{"default", "bgp-join-planner"};
 
   // ___________________________________________________________________________
   // IMPORTANT NOTE: IF YOU ADD PARAMETERS ABOVE, ALSO REGISTER THEM IN THE
