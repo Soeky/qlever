@@ -20,7 +20,8 @@ add_library(engine
         ExplicitIdTableOperation.cpp StringMapping.cpp MaterializedViews.cpp
         PermutationSelector.cpp ConstructQueryEvaluator.cpp ConstructTripleGenerator.cpp ConstructTemplatePreprocessor.cpp
         MaterializedViewsQueryAnalysis.cpp UpdateMetadata.cpp
-        DefaultBgpCardinalityEstimator.cpp)
+        DefaultBgpCardinalityEstimator.cpp
+        DefaultJoinOrderAlgorithm.cpp)
 
 qlever_target_link_libraries(engine util index parser global sparqlExpressions SortPerformanceEstimator Boost::iostreams s2 spatialjoin-dev pb_util pb_util_geo)
 
@@ -30,6 +31,12 @@ qlever_target_link_libraries(engine util index parser global sparqlExpressions S
 # `REDUCED_FEATURE_SET_FOR_CPP17` is set.
 if (NOT REDUCED_FEATURE_SET_FOR_CPP17)
     target_link_libraries(engine http)
+endif()
+
+if (QLEVER_WITH_FICE)
+    target_sources(engine PRIVATE FiceBgpEstimator.cpp)
+    target_link_libraries(engine "${TORCH_LIBRARIES}")
+    target_include_directories(engine PRIVATE "${TORCH_INCLUDE_DIRS}")
 endif()
 
 add_library(server Server.cpp)

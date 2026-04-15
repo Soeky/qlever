@@ -70,6 +70,13 @@ if (EXPRESSION_GENERATOR_BACKPORTS_FOR_CPP17)
     add_compile_definitions(QLEVER_EXPRESSION_GENERATOR_BACKPORTS_FOR_CPP17)
 endif()
 
+option(QLEVER_WITH_FICE "Build with FICE cardinality estimation (requires LibTorch)" OFF)
+if (QLEVER_WITH_FICE)
+    find_package(Torch REQUIRED)
+    add_compile_definitions(QLEVER_WITH_FICE)
+    message(STATUS "FICE support enabled (LibTorch: ${TORCH_LIBRARIES})")
+endif()
+
 set(RANGE_V3_REQUIRED_BY_COMPILER OFF)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "11.0.0" AND NOT COMPILER_VERSION_CHECK_DEACTIVATED)

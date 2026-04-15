@@ -167,13 +167,17 @@ struct RuntimeParameters {
 
   // Selects which cardinality estimator to use for BGP planning.
   // "default" uses QLever's native IndexScan/Join estimation.
-  // "gnce" uses the GNCE GNN-based estimator (Phase 5).
+  // "fice" uses the FICE GNN-based estimator.
   String bgpCardEstimator_{"default", "bgp-card-estimator"};
 
   // Selects which join ordering algorithm to use for BGP planning.
   // "default" uses QLever's native DP/greedy planning (fillDpTab).
   // "greedy-custom" uses a custom greedy join ordering (Phase 4).
   String bgpJoinPlanner_{"default", "bgp-join-planner"};
+
+  // Path to the directory containing FICE inference artifacts
+  // (output of prepare.py: embeddings, model, uri_to_id.json, metadata.json).
+  String ficeArtifactsDir_{"", "fice-artifacts-dir"};
 
   // ___________________________________________________________________________
   // IMPORTANT NOTE: IF YOU ADD PARAMETERS ABOVE, ALSO REGISTER THEM IN THE

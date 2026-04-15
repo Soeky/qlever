@@ -53,6 +53,9 @@
 #include "engine/TransitivePathBase.h"
 #include "engine/Union.h"
 #include "engine/Values.h"
+#ifdef QLEVER_WITH_FICE
+#include "engine/FiceBgpEstimator.h"
+#endif
 #include "engine/sparqlExpressions/LiteralExpression.h"
 #include "engine/sparqlExpressions/NaryExpression.h"
 #include "engine/sparqlExpressions/RelationalExpressions.h"
@@ -3428,6 +3431,40 @@ void QueryPlanner::GraphPatternPlanner::visitSubquery(
 void QueryPlanner::GraphPatternPlanner::optimizeCommutatively() {
   auto joinPlannerMode =
       getRuntimeParameter<&RuntimeParameters::bgpJoinPlanner_>();
+
+  // Optionally log FICE estimates alongside the default planning path.
+  [[maybe_unused]] auto cardEstimatorMode =
+      getRuntimeParameter<&RuntimeParameters::bgpCardEstimator_>();
+
+#ifdef QLEVER_WITH_FICE
+  if (cardEstimatorMode == "fice" &&
+      !candidateTriples_._triples.empty()) {
+    // Lazily initialize the FICE estimator singleton on first use.
+    static std::unique_ptr<qlever::bgp::FiceBgpEstimator> ficeEstimator;
+    static std::once_flag ficeInitFlag;
+    auto ficeDir =
+        getRuntimeParameter<&RuntimeParameters::ficeArtifactsDir_>();
+    std::call_once(ficeInitFlag, [&]() {
+      if (!ficeDir.empty()) {
+        ficeEstimator =
+            std::make_unique<qlever::bgp::FiceBgpEstimator>(ficeDir);
+        qlever::bgp::EstimatorContext warmupCtx{planner_._qec};
+        ficeEstimator->warmup(warmupCtx);
+      }
+    });
+
+    if (ficeEstimator) {
+      // Log the FICE estimate for the full BGP.
+      qlever::bgp::EstimatorContext estCtx{planner_._qec};
+      std::span<const SparqlTriple> tripleSpan(
+          candidateTriples_._triples);
+      uint64_t ficeEst = ficeEstimator->estimate(tripleSpan, estCtx);
+      LOG(INFO) << "FICE estimate for BGP with "
+                << candidateTriples_._triples.size()
+                << " triples: " << ficeEst << std::endl;
+    }
+  }
+#endif
 
   if (joinPlannerMode == "default") {
     // Default path: use existing QLever DP/greedy planning unchanged.

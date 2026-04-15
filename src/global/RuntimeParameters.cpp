@@ -58,6 +58,7 @@ RuntimeParameters::RuntimeParameters() {
   add(permutationWriterNumThreads_);
   add(bgpCardEstimator_);
   add(bgpJoinPlanner_);
+  add(ficeArtifactsDir_);
 
   defaultQueryTimeout_.setParameterConstraint(
       [](std::chrono::seconds value, std::string_view parameterName) {
@@ -70,10 +71,10 @@ RuntimeParameters::RuntimeParameters() {
 
   bgpCardEstimator_.setParameterConstraint(
       [](const std::string& value, std::string_view parameterName) {
-        if (value != "default" && value != "gnce") {
+        if (value != "default" && value != "fice") {
           throw std::runtime_error{absl::StrCat(
               "Parameter ", parameterName,
-              " must be \"default\" or \"gnce\", was \"", value, "\"")};
+              " must be \"default\" or \"fice\", was \"", value, "\"")};
         }
       });
 
